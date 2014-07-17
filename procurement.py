@@ -23,7 +23,8 @@ class procurement_order(osv.Model):
             method to make sure any created PO's are merged according to their
             respective Sales Orders.
             ------------------------------------------------------------------ '''
-
+        if context: context['mrp_scheduler'] = True
+        else: context = {'mrp_scheduler': True}
         result = super(procurement_order, self).run_scheduler(cr, uid, automatic, use_new_cursor, context)
         if use_new_cursor:
             use_new_cursor = cr.dbname
@@ -52,7 +53,7 @@ class procurement_order(osv.Model):
                 if len(ids) > 1:
                     new_orders = po_db.do_merge(cr, uid, ids, context=context)
                     for new_order in new_orders:
-                        po_db.write(cr, uid, [new_order], {'origin':origin, 'dest_address_id':sale_order.partner_shipping_id.id, 'partner_ref':sale_order.client_order_ref})
+                        po_db.write(cr, uid, [new_order], {'origin':origin, 'dest_address_id':sale_order.partner_shipping_id.id, 'partner_ref':sale_order.client_order_ref}, context=context)
                         proc_ids = proc_db.search(cr, uid, [('purchase_id', 'in', new_orders[new_order])], context=context)
                         for proc in proc_db.browse(cr, uid, proc_ids, context=context):
                             if proc.purchase_id:
